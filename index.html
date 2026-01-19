@@ -305,8 +305,7 @@ input {
 /* toolbar แบบ professional viewer */
 .zoom-toolbar {
     position: absolute;
-    top: 40px;
-    right: -980px;     /* <<<< ย้ายไปมุมขวา */
+   /* <<<< ย้ายไปมุมขวา */
     
     display: flex;
     align-items: center;
@@ -363,6 +362,10 @@ input {
 }
 
 .zoom-toolbar.vertical {
+    position: fixed;
+    right: 12px;
+    bottom: 90px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -374,10 +377,13 @@ input {
     padding: 14px 10px;
     border-radius: 18px;
 
+    z-index: 999;
+
     box-shadow:
         0 12px 30px rgba(0,0,0,0.18),
         inset 0 1px 0 rgba(255,255,255,0.7);
 }
+
 
 /* ปุ่มวงกลม */
 .zoom-toolbar.vertical button {
@@ -456,11 +462,6 @@ input {
         overflow-x: auto;
     }
 
-    /* PDF scale ให้พอดีจอมือถือ */
-    #pdf-template {
-        transform: scale(0.45);
-        transform-origin: top center;
-    }
 
     /* ปุ่ม zoom */
     .input-panel > div:first-child {
@@ -647,28 +648,30 @@ async function downloadPDF(){
     const { jsPDF } = window.jspdf;
     const element = document.getElementById("pdf-template");
 
+    // 🔴 ปิด transform ก่อน render
+    const oldTransform = element.style.transform;
     element.style.transform = "none";
 
+    const isMobile = window.innerWidth < 768;
+
     const canvas = await html2canvas(element,{
-        scale: 3,
+        scale: isMobile ? 2 : 3,   // ⭐ สำคัญ
         useCORS: true,
-        backgroundColor: "#ffffff",
-        letterRendering: true
+        backgroundColor: "#ffffff"
     });
 
-    const img = canvas.toDataURL("image/png");
+    const img = canvas.toDataURL("image/jpeg", 0.95);
 
-    const agencyName =
-    document.getElementById("out_agency").innerText || "GDCC_CA";
+    const pdf = new jsPDF("p","mm","a4");
+    pdf.addImage(img,"JPEG",0,0,210,297);
 
-    // ล้างอักขระต้องห้ามในชื่อไฟล์
-    const safeName = agencyName
-    .replace(/[\\/:*?"<>|]/g, "")
-    .trim();
+    const agency =
+        document.getElementById("out_agency").innerText || "GDCC_CA";
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    pdf.addImage(img, "PNG", 0, 0, 210, 297);
-    pdf.save(`${safeName}.pdf`);
+    pdf.save(agency.replace(/[\\/:*?"<>|]/g,"") + ".pdf");
+
+    // 🔁 คืนค่า zoom
+    element.style.transform = oldTransform;
 
     setTimeout(() => {
     location.reload();   // รีเฟรชกลับหน้าที่ 1
@@ -974,12 +977,15 @@ let previewScale = 0.6;
 
 function resetZoom() {
     if (window.innerWidth < 768) {
-        previewScale = 0.45;
+        previewScale = 0.42;   // มือถือ
     } else {
-        previewScale = 0.6;
+        previewScale = 0.6;    // desktop
     }
     applyZoom();
+    window.addEventListener('load', resetZoom);
+
 }
+
 
 window.addEventListener('resize', resetZoom);
 
