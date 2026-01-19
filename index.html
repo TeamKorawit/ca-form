@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>เอกสารยืนยันรับไว้ใช้งาน CA</title>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+
+
+
+<style>
+   /* Font */
+    @font-face {
+    font-family: 'TH SarabunPSK';
+    src: url('fonts/THSarabunPSK.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TH SarabunPSK';
+    src: url('fonts/THSarabunPSK-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+/* ------------------------------------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 10px;
+    font-family: 'TH SarabunPSK', sans-serif;
+    background: #e9ecef;
+    display: flex;
+    justify-content: center;
+}
+
+
+.container {
+    max-width: 1400px;
+    width: 100%;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start; /* สำคัญ */
+}
+
+
+/* ================= LEFT PANEL ================= */
+.input-panel {
+    width: 360px;
+    flex-shrink: 0;        /* ❗ ห้ามโดนบีบ */
+
+    position: sticky;
+    top: 20px;
+
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+
+
+
+.input-panel h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.btn-download {
+    margin-top: 20px;
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+/* ================= RIGHT PANEL ================= */
+.preview-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+
+/* ================= PDF TEMPLATE ================= */
+#pdf-template {
+    width: 210mm;
+    height: 297mm;
+    padding: 16mm;
+    background: white;
+    color: black;
+    position: relative;
+
+    font-family: 'TH SarabunPSK', sans-serif;
+    font-size: 16px;     /* ← แนะนำ 16px (อ่านสบาย + พิมพ์สวย) */
+    line-height: 1.2;
+}
+
+
+/* Preview scale ONLY */
+.preview-panel #pdf-template {
+  
+    transform-origin: top center;
+    box-shadow: 0 0 15px rgba(0,0,0,.2);
+}
+
+/* ================= DOCUMENT STYLE ================= */
+.header-text {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.header-text b {
+    font-size: 20px;   /* บรรทัดชื่อเอกสาร */
+}
+
+.logo {
+    height: 70px;
+    margin-bottom: 0px;
+    line-height: 0.5;
+}
+
+.section-title {
+    font-weight: bold;
+    margin-top: 18px;
+    font-size: 17px;
+    /* line-height: 0.5; */
+}
+
+
+/*-------------------------------------------------------------------------------*/
+.signature-area {
+    position: absolute;
+    right: 22mm;
+    bottom: 40mm;
+    width: 350px;
+
+    text-align: center;
+    font-size: 15px;     /* ใหญ่กว่าข้อความเล็กน้อย */
+    line-height: 1.4;
+
+    border: 1px solid #000;
+    padding: 18px 12px 14px;
+}
+
+
+/*-------------------------------------------------------------------------------*/
+.footer {
+    position: absolute;
+    bottom: 15mm;
+    left: 20mm;
+    font-size: 13px;
+    color: gray;
+}
+/*-------------------------------------------------------------------------------*/
+.field {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin-bottom: 6px;
+    font-size: inherit;
+
+}
+
+.field-label {
+    white-space: nowrap;
+    font-size: inherit;
+}
+
+.line {
+    flex: 1;
+    border-bottom: 1px dotted #000;
+    padding-left: 4px;
+    min-height: 18px;
+
+    font-size: inherit;
+    line-height: inherit;
+}
+
+
+/*-------------------------------------------------------------------------------*/
+.field-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 6px;
+}
+
+.field-row .field {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.field-row .phone {
+    width: 45%;   /* ปรับได้ */
+}
+
+.field-row .email {
+    width: 55%;   /* ปรับได้ */
+}
+
+
+/*-------------------------------------------------------------------------------*/
+
+.check-row {
+    display: flex;
+    align-items: flex-start;   /* สำคัญ */
+    gap: 1px;
+    margin-left: 10px;
+    margin-bottom: 8px;
+    font-size: 15.5px;
+    line-height: 1;
+}
+
+.checkbox {
+    width: 18px;              /* ล็อกความกว้าง */
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+
+.check-text {
+    flex: 1;
+}
+
+.check-label {
+    display: flex;
+    align-items: flex-start;   /* สำคัญ */
+    gap: 8px;
+    margin-left: 10px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    line-height: 3;
+}
+
+/* ความยาวเฉพาะแต่ละช่อง */
+.line.short {
+    display: inline-block;
+    min-width: 10mm;
+    gap: 2px;
+    text-align: center;
+    font-size: inherit;
+}
+
+.line.date {
+
+    flex: none;
+    min-width: 60mm;
+    text-align: center;
+    padding: 0 6px;
+    
+    /* width: 10mm;
+    text-align: center;
+    font-size: inherit;
+    padding: 0 4px; */
+}
+
+
+.line.fixed {
+    flex: none;
+    width: 110mm;   /* ปรับตามฟอร์มจริง */
+}
+/* --------------------------------------------------------------------------------------- */
+.preview-wrapper {
+    position: relative;
+}
+
+/* toolbar แบบ professional viewer */
+.zoom-toolbar {
+    position: absolute;
+    top: 40px;
+    right: -980px;     /* <<<< ย้ายไปมุมขวา */
+    
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+
+    padding: 10px 14px;
+    border-radius: 14px;
+
+    z-index: 20;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+
+
+.zoom-toolbar button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+
+    background: #fff;
+    color: #333;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    transition: all .2s ease;
+}
+
+.zoom-toolbar button:hover {
+    transform: translateY(-1px);
+}
+
+.zoom-toolbar .fit {
+    background: #111827;
+    color: #fff;
+}
+
+#zoomPercent {
+    padding: 0 10px;
+    font-weight: 700;
+    color: #2563eb;
+}
+.zoom-toolbar:hover {
+    box-shadow:
+        0 14px 35px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+.zoom-toolbar.vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(14px);
+
+    padding: 14px 10px;
+    border-radius: 18px;
+
+    box-shadow:
+        0 12px 30px rgba(0,0,0,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+/* ปุ่มวงกลม */
+.zoom-toolbar.vertical button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    border: none;
+    cursor: pointer;
+
+    background: #fff;
+    color: #111;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+    transition: all .2s ease;
+}
+
+.zoom-toolbar.vertical button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.2);
+}
+
+/* ปุ่มพอดีจอ */
+.zoom-toolbar.vertical .fit {
+    width: auto;
+    height: auto;
+    padding: 8px 14px;
+    border-radius: 999px;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    background: #111827;
+    color: #fff;
+}
+
+/* % zoom */
+#zoomPercent {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    user-select: none;
+}
+
+
+/* ----------------------------------------------------------------------------------------------------------------- */
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+    body {
+        padding: 0;
+    }
+
+    .container {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* กล่องกรอกข้อมูล */
+    .input-panel {
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    /* Preview */
+    .preview-panel {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    /* PDF scale ให้พอดีจอมือถือ */
+    #pdf-template {
+        transform: scale(0.45);
+        transform-origin: top center;
+    }
+
+    /* ปุ่ม zoom */
+    .input-panel > div:first-child {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        padding-bottom: 10px;
+        z-index: 10;
+    }
+
+    .btn-download {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+}
+
+/* ----------------------------------------------------------------------------------------------------------------- */
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- ================= INPUT ================= -->
+<div class="input-panel">
+    <h2>กรอกข้อมูล</h2>
+
+    <label>อัปโหลด PDF เพื่อดึงข้อมูลอัตโนมัติ (ไม่สมบูรณ์)</label>
+    <input type="file" accept="application/pdf" onchange="readPDF(this)">
+    
+    <label>กระทรวง</label>
+    <input value="กระทรวงมหาดไทย" oninput="update('out_ministry',this.value)">
+
+    <label>กรม</label>
+    <input value="กรมส่งเสริมการปกครองท้องถิ่น" oninput="update('out_department',this.value)">
+
+    <label>หน่วยงาน</label>
+    <input oninput="update('out_agency',this.value)">
+
+    <label>ชื่อ-นามสกุล</label>
+    <input oninput="update('out_name',this.value)">
+
+    <label>โทรศัพท์</label>
+    <input placeholder="00-0000-0000 / 0-0000-0000" maxlength="12" oninput="formatPhoneFlexible(this)">
+
+    <label>อีเมล</label>
+    <input placeholder="eoffice@gmail.com" oninput="update('out_email',this.value)">
+
+    <label>ตำแหน่ง</label>
+    <input placeholder="เจ้าพนักงานธุรการชำนาญงาน" oninput="update('out_position',this.value)">
+
+    <label>จำนวนใบรับรอง (ใบ)</label>
+    <input type="number" value="1" oninput="update('out_count',this.value)">
+
+    <label>วันที่</label>
+    <input type="date" oninput="updateThaiDate(this.value)">
+
+    <button class="btn-download" onclick="downloadPDF()">ดาวน์โหลด PDF</button>
+
+    <button type="button" onclick="scrollToPDF()" style="margin-top:10px"> 📄 ดูเอกสาร</button>
+
+
+
+
+</div>
+
+<!-- ================= PREVIEW ================= -->
+<div class="preview-panel">
+    <div class="preview-wrapper">
+
+        <div class="zoom-toolbar vertical">
+    <button onclick="zoomIn()">＋</button>
+    <span id="zoomPercent">100%</span>
+    <button onclick="zoomOut()">−</button>
+    <button class="fit" onclick="fitToScreen()">พอดีจอ</button>
+</div>
+
+
+    </div>
+
+<div id="pdf-template">
+
+    <div class="header-text">
+        <img class="logo" src="ca/GDCC_.jpg">
+        <div><b>เอกสารยืนยันรับไว้ใช้งาน</b></div>
+        <div><b>ใบรับรองอิเล็กทรอนิกส์เพื่อลงลายมือชื่อ (Digital Certificate)</b></div>
+        <div><b>บริการระบบบริหารจัดการสำนักงาน (e-Office)</b></div>
+        <div><b>ภายใต้โครงการบริการระบบคลาวด์กลางภาครัฐ</b></div>
+        <div><b>(Government Data Center and Cloud Service)</b></div>
+    </div>
+
+    <div class="section-title">1. ข้อมูลผู้ขอใช้ใบรับรองอิเล็กทรอนิกส์เพื่อลงลายมือชื่อ (Digital Certificate)</div><p></p>
+
+    <div class="field">
+    <div class="field-label">กระทรวง :</div>
+    <span class="line" id="out_ministry">กระทรวงมหาดไทย</span>
+    </div>
+
+     <div class="field">
+    <div class="field-label">กรม :</div>
+    <span class="line" id="out_department">กรมส่งเสริมการปกครองท้องถิ่น</span>
+    </div>
+
+    <div class="field">
+    <div class="field-label">หน่วยงาน :</div>
+    <span class="line" id="out_agency"></span>
+    </div>
+
+    <div class="section-title">2. ผู้ประสานงาน</div><p></p>
+
+    <div class="field" >
+    <div class="field-label" >ชื่อ-นามสกุล (ภาษาไทย) นาย/นาง/นางสาว :</div>
+    <span class="line" id="out_name"></span>
+    </div>
+
+    <div class="field-row">
+    <div class="field phone">
+        <div class="field-label">โทรศัพท์ :</div>
+        <span class="line" id="out_phone"></span>
+    </div>
+
+    <div class="field email">
+        <div class="field-label">อีเมล :</div>
+        <span class="line" id="out_email"></span>
+    </div>
+    </div>
+
+    <div class="field">
+    <div class="field-label">ตำแหน่ง :</div>
+    <span class="line" id="out_position"></span>
+    </div>
+
+    <div class="section-title">3. รายละเอียดการยืนยันรับไว้ใช้งาน ใบรับรองอิเล็กทรอนิกส์เพื่อลงลายมือชื่อ (Digital Certificate) </div><p></p>
+
+    <div class="check-row">
+    <span class="checkbox">☑</span>
+        <span class="check-text">
+            ทาง Admin ได้ดำเนินการแจ้งให้เครดิตใบรับรองอิเล็กทรอนิกส์เพื่อลงลายมือชื่อ (Certificate) ของหน่วยงานเรียบร้อยแล้ว
+        </span>
+    </div>
+
+    <div class="check-row">
+    <span class="checkbox">☑</span>
+        <span class="check-text">
+            หน่วยงานได้รับเครดิตและยืนยันรับใบรับรองอิเล็กทรอนิกส์เพื่อลงลายมือชื่อ (Certificate)
+            จำนวน <span class="line short" id="out_count">1</span> ใบ ใช้งาน ตั้งแต่วันที่
+            <span class="line date" id="out_day"></span>
+        </span>
+    </div><p>
+
+
+        <span class="check-label">
+            ทั้งนี้ ผู้ประสานงานได้รับทราบ และยอมรับข้อกำหนดและเงื่อนไขการให้บริการ e-office ตลอดจนนโยบายการคุ้มครองข้อมูลส่วนบุคคลฯ และยืนยันรับไว้ใช้งาน โดยได้ลงนามไว้เป็นหลักฐาน
+        </span>
+    
+
+    <div class="signature-area">
+        ผู้ประสานงาน/ผู้แทนหน่วยงาน <br> <br> 
+        
+
+        <p>ลงชื่อ.........................................................................</p>
+        <p>(............................................................................) </p>
+        <p>ตำแหน่ง.......................................................................</p>
+        <p>วันที่ ................./................../.................</p>
+    </div>
+
+    <div class="footer">
+        Version 1.03 Updated: 16/01/2569
+    </div>
+
+</div> 
+</div>
+<!-- --------------------------------------------- -->
+</div>
+</div>
+
+<script>
+function update(id,value){
+    document.getElementById(id).innerText = value || " ";
+}
+
+async function downloadPDF(){
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById("pdf-template");
+
+    element.style.transform = "none";
+
+    const canvas = await html2canvas(element,{
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        letterRendering: true
+    });
+
+    const img = canvas.toDataURL("image/png");
+
+    const agencyName =
+    document.getElementById("out_agency").innerText || "GDCC_CA";
+
+    // ล้างอักขระต้องห้ามในชื่อไฟล์
+    const safeName = agencyName
+    .replace(/[\\/:*?"<>|]/g, "")
+    .trim();
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.addImage(img, "PNG", 0, 0, 210, 297);
+    pdf.save(`${safeName}.pdf`);
+
+    setTimeout(() => {
+    location.reload();   // รีเฟรชกลับหน้าที่ 1
+    }, 500); // หน่วง 0.5 วินาที
+
+
+
+    element.style.transform = `scale(${previewScale})`;
+}
+</script>
+
+<script>
+function updateThaiDate(value) {
+    if (!value) {
+        document.getElementById('out_day').innerText = '';
+        return;
+    }
+
+    const monthsTH = [
+        'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+        'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
+    ];
+
+    const date = new Date(value);
+    const day = date.getDate();
+    const month = monthsTH[date.getMonth()];
+    const year = date.getFullYear() + 543;
+
+    document.getElementById('out_day').innerText =
+        `${day} / ${month} / ${year}`;
+}
+</script>
+
+<script>
+function formatPhoneFlexible(input) {
+    let numbers = input.value.replace(/\D/g, '').substring(0,10);
+    let formatted = '';
+
+    if (numbers.length <= 1) {
+        formatted = numbers;
+    } else if (numbers.length <= 5) {
+        formatted = numbers.slice(0,1) + '-' + numbers.slice(1);
+    } else if (numbers.length <= 6) {
+        formatted = numbers.slice(0,2) + '-' + numbers.slice(2);
+    } else {
+        if (numbers.length === 10) {
+            formatted = numbers.slice(0,2) + '-' +
+                        numbers.slice(2,6) + '-' +
+                        numbers.slice(6);
+        } else {
+            formatted = numbers.slice(0,1) + '-' +
+                        numbers.slice(1,5) + '-' +
+                        numbers.slice(5);
+        }
+    }
+
+    input.value = formatted;
+    document.getElementById('out_phone').innerText = formatted;
+}
+</script>
+
+<script>
+async function readPDF(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    console.log("📄 PDF selected:", file.name);
+
+    const reader = new FileReader();
+    reader.onload = async function () {
+        try {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+
+            console.log("✅ PDF loaded, pages:", pdf.numPages);
+
+            let fullText = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+
+                // ===== ถ้ามี TEXT =====
+                if (content.items.length > 0) {
+                    content.items.forEach(item => {
+                        fullText += item.str + ' ';
+                    });
+                } 
+                // ===== ถ้าเป็นสแกน → OCR =====
+                else {
+                    console.log("🖼 Page", i, "is image, using OCR");
+
+                    const viewport = page.getViewport({ scale: 2 });
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    await ocrFromCanvas(canvas);
+                    return;
+                }
+            }
+
+            console.log("📄 Extracted text:", fullText);
+
+            if (fullText.trim()) {
+                extractData(fullText);
+            } else {
+                console.warn("⚠ No text found, fallback OCR");
+                const page = await pdf.getPage(1);
+                const viewport = page.getViewport({ scale: 2 });
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                await page.render({ canvasContext: ctx, viewport }).promise;
+                await ocrFromCanvas(canvas);
+            }
+
+        } catch (err) {
+            console.error("❌ PDF read error:", err);
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+</script>
+
+
+<script>
+function extractData(text) {
+
+    // normalize
+      text = text
+        .replace(/\s+/g, ' ')
+        .replace(/[\u200B-\u200D\uFEFF]/g, '');
+
+    console.log("🧪 normalized:", text);
+
+    // // กระทรวง
+    // const ministry = text.match(/กระ\s*ทรวง\s*([ก-๙\s]{3,50})/);
+    // if (ministry) update('out_ministry', ministry[1].trim());
+
+    // // กรม
+    // const department = text.match(/กรม\s*(.{3,80})/);
+    // if (department) update('out_department', department[1].trim());
+
+    // หน่วยงาน
+    const agency = text.match(/ในการนี้\s*((สำนักงาน|องค์การ|เทศบาล|อบต\.|อบจ\.)[ก-๙\s]{3,80})/);
+    if (agency) update('out_agency', agency[1].trim());
+
+    // ชื่อ-นามสกุล
+    const name = text.match(/โดยมอบหมายให้\s*(นางสาว|นาย|นาง)\s*([ก-๙]{3,30})\s*([ก-๙]{3,30})/);
+    if (name) update('out_name', `${name[2]} ${name[3]}`);
+
+
+    // โทรศัพท์
+    const phoneMatch = text.match(/(หมายเลขโทรศัพท์|โทรศัพท์|โทร\.?|โทรศัพย์)\s*[:：]?\s*([0-9๐-๙\-]{8,15})/);
+    if (phoneMatch) {
+        let phoneRaw = phoneMatch[2];
+
+        phoneRaw = thaiToArabicNumber(phoneRaw);
+        const phoneClean = phoneRaw.replace(/\D/g, '');
+
+        document.getElementById('out_phone').innerText =
+            formatPhoneDisplay(phoneClean);
+    }
+
+
+    // อีเมล
+    // ===== EMAIL =====
+text = text
+    .replace(/\s*@\s*/g, '@')
+    .replace(/\s*\.\s*/g, '.')
+    .replace(/\s+/g, ' ');
+
+let email = '';
+
+const emailWithLabel = text.match(
+    /(Email|E-mail|อีเมล)\s*[:：]?\s*([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/i
+);
+
+if (emailWithLabel) {
+    email = emailWithLabel[2];
+} else {
+    const looseEmail = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    if (looseEmail) email = looseEmail[0];
+}
+
+if (email) update('out_email', email);
+
+    
+
+    // ===== ดึงตำแหน่ง (ผูกกับชื่อผู้ประสานงาน) =====
+    let position = '';
+
+    let scopeText = text;
+
+    // ถ้ามีชื่อ → ใช้ข้อความหลังชื่อเป็นขอบเขต
+    if (text.includes('โดยมอบหมายให้')) {
+        scopeText = text.split('โดยมอบหมายให้')[1];
+    }
+
+    if (scopeText && scopeText.includes('ตำแหน่ง')) {
+        const afterPosition = scopeText.split('ตำแหน่ง')[1];
+
+        if (afterPosition) {
+            position = afterPosition
+                .split(/โทรศัพท์|โทร|หมายเลข|อีเมล|Email|ลงชื่อ|วันที่/)[0]
+                .replace(/[:\-]/g, '')
+                .trim();
+        }
+    }
+
+    if (position && position.length < 80) {
+        update('out_position', position);
+    }
+
+    // // จำนวนใบ
+    // const count = text.match(/จำนวน\s*(\d+)\s*ใบ/);
+    // if (count) update('out_count', count[1]);
+
+    // วันที่ไทย
+    const dateTH = text.match(/(\d{1,2})\s*(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)\s*(\d{4})/);
+    if (dateTH) {
+        document.getElementById('out_day').innerText =
+            `${dateTH[1]} / ${dateTH[2]} / ${dateTH[3]}`;
+    }
+
+}
+
+</script>
+
+<script>
+function thaiToArabicNumber(str) {
+    const thaiNums = {
+        '๐':'0','๑':'1','๒':'2','๓':'3','๔':'4',
+        '๕':'5','๖':'6','๗':'7','๘':'8','๙':'9'
+    };
+    return str.replace(/[๐-๙]/g, d => thaiNums[d]);
+}
+</script>
+
+<script>
+function formatPhoneDisplay(num) {
+    if (num.length === 10) {
+        return num.slice(0,2) + '-' + num.slice(2,6) + '-' + num.slice(6);
+    }
+    if (num.length === 9) {
+        return num.slice(0,1) + '-' + num.slice(1,5) + '-' + num.slice(5);
+    }
+    return num;
+}
+</script>
+
+
+<script>
+function setTodayIfEmpty() {
+    const outDay = document.getElementById('out_day');
+    if (outDay.innerText.trim() !== '') return;
+
+    const monthsTH = [
+        'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+        'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
+    ];
+
+    const now = new Date();
+    const day = now.getDate();
+    const month = monthsTH[now.getMonth()];
+    const year = now.getFullYear() + 543;
+
+    outDay.innerText = `${day} / ${month} / ${year}`;
+}
+
+window.addEventListener('load', () => {
+    setTodayIfEmpty();
+    applyZoom();
+});
+
+</script>
+
+<script>
+async function ocrFromCanvas(canvas) {
+    console.log("🔍 OCR started...");
+
+    const { data: { text } } = await Tesseract.recognize(
+        canvas,
+        'tha+eng',
+        {
+            logger: m => console.log(m)
+        }
+    );
+
+    console.log("🧠 OCR Result:", text);
+    extractData(text);
+}
+</script>
+
+<script>
+let previewScale = 0.6;
+
+function resetZoom() {
+    if (window.innerWidth < 768) {
+        previewScale = 0.45;
+    } else {
+        previewScale = 0.6;
+    }
+    applyZoom();
+}
+
+window.addEventListener('resize', resetZoom);
+
+
+function applyZoom() {
+    const pdf = document.getElementById('pdf-template');
+    pdf.style.transform = `scale(${previewScale})`;
+    pdf.style.transformOrigin = 'top center';
+
+    document.getElementById('zoomPercent').innerText =
+        Math.round(previewScale * 100) + '%';
+}
+
+function zoomIn() {
+    previewScale += 0.1;
+    applyZoom();
+}
+
+function zoomOut() {
+    if (previewScale > 0.2) {
+        previewScale -= 0.1;
+        applyZoom();
+    }
+}
+
+function fitToScreen() {
+    const panel = document.querySelector('.preview-panel');
+    const pdf = document.getElementById('pdf-template');
+
+    previewScale = (panel.clientWidth / pdf.offsetWidth) * 0.95;
+    applyZoom();
+}
+
+</script>
+
+
+
+
+</body>
+</html>
